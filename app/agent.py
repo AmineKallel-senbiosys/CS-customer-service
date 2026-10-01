@@ -3,6 +3,8 @@ from __future__ import annotations
 import html
 import json
 import logging
+import re
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Callable
 
 from openai import OpenAI
@@ -46,6 +48,7 @@ TOOL_LABELS = {
     "lookup_orders": "Looking up your order…",
     "update_shipping_details": "Updating your shipping details…",
     "create_support_ticket": "Opening a request for our team…",
+    "resolve_circumference": "Working out your size…",
 }
 
 TOOLS: list[dict[str, Any]] = [
@@ -169,6 +172,37 @@ TOOLS: list[dict[str, Any]] = [
                     },
                 },
                 "required": ["email", "subject", "summary", "priority"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "resolve_circumference",
+            "description": (
+                "Work out a ring circumference from millimetre measurements. "
+                "Call this as soon as the customer gives a jeweler circumference "
+                "or one or two home measurements. Do not compare the two numbers "
+                "and do not calculate the average yourself. Follow the returned "
+                "action and use only the returned circumference."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "jeweler_mm": {
+                        "type": "number",
+                        "description": "Jeweler circumference in millimetres, when they gave one.",
+                    },
+                    "ring_mm": {
+                        "type": "number",
+                        "description": "Using a ring circumference in millimetres.",
+                    },
+                    "finger_mm": {
+                        "type": "number",
+                        "description": "Measure finger circumference in millimetres.",
+                    },
+                },
                 "additionalProperties": False,
             },
         },
@@ -389,6 +423,182 @@ def sync_ticket_notes(session: dict[str, Any]) -> None:
         hubspot.attach_note(ticket_id, note_id, contact_id)
 
 
+_ZONE_PATTERN = re.compile(
+    r"^(?:C\s*(?P<op>>|<)\s*(?P<bound>[0-9.]+)"
+    r"|(?P<low>[0-9.]+)\s*(?P<lop><=|<)\s*C\s*(?P<rop><=|<)\s*(?P<high>[0-9.]+))$"
+)
+
+
+def _millimetres(value: Any) -> Decimal | None:
+    if value is None or value is False or value == "":
+        return None
+    if isinstance(value, bool):
+        return None
+    text = str(value).strip().lower().replace(",", ".")
+    text = text.replace("mm", "").strip()
+    if not text:
+        return None
+    try:
+        number = Decimal(text)
+    except Exception:
+        return None
+    if not number.is_finite() or number <= 0:
+        return None
+    return number
+
+
+def _one_decimal(value: Decimal) -> str:
+    return format(value.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP), "f")
+
+
+def _plain_mm(value: Decimal) -> str:
+    text = format(value, "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text or "0"
+
+
+def _zone_matches(circumference: Decimal, expression: str) -> bool:
+    text = expression.split("(", 1)[0].strip()
+    match = _ZONE_PATTERN.fullmatch(text)
+    if not match:
+        return False
+    if match.group("op"):
+        bound = Decimal(match.group("bound"))
+        if match.group("op") == ">":
+            return circumference > bound
+        return circumference < bound
+    low = Decimal(match.group("low"))
+    high = Decimal(match.group("high"))
+    left = circumference >= low if match.group("lop") == "<=" else circumference > low
+    right = circumference <= high if match.group("rop") == "<=" else circumference < high
+    return left and right
+
+
+def _fit_for(kb: KnowledgeBase, circumference: Decimal) -> dict[str, Any]:
+    shown = _one_decimal(circumference)
+    if circumference < Decimal("50.6") or circumference > Decimal("67.2"):
+        return {
+            "action": "result_out_of_range",
+            "template": "result_out_of_range",
+            "circumference_mm": shown,
+            "size": None,
+            "fit": None,
+        }
+    policies = (kb.raw.get("policies") or {}).get("POL-SIZE-RESULT") or {}
+    for zone in policies.get("fit_zones") or []:
+        size = str(zone.get("size") or "")
+        for fit_name in ("loose", "ok", "tight"):
+            expression = str(zone.get(fit_name) or "")
+            if not expression or not _zone_matches(circumference, expression):
+                continue
+            if "out of range" in expression.lower():
+                return {
+                    "action": "result_out_of_range",
+                    "template": "result_out_of_range",
+                    "circumference_mm": shown,
+                    "size": None,
+                    "fit": None,
+                }
+            if fit_name == "ok":
+                return {
+                    "action": "result_ok",
+                    "template": "result_ok",
+                    "circumference_mm": shown,
+                    "size": size,
+                    "fit": "expected",
+                }
+            return {
+                "action": "result_check",
+                "template": "result_check",
+                "circumference_mm": shown,
+                "size": size,
+                "fit": fit_name,
+            }
+    return {
+        "action": "result_out_of_range",
+        "template": "result_out_of_range",
+        "circumference_mm": shown,
+        "size": None,
+        "fit": None,
+    }
+
+
+def resolve_circumference(
+    kb: KnowledgeBase,
+    jeweler_mm: Any = None,
+    ring_mm: Any = None,
+    finger_mm: Any = None,
+) -> dict[str, Any]:
+    jeweler = _millimetres(jeweler_mm)
+    ring = _millimetres(ring_mm)
+    finger = _millimetres(finger_mm)
+    if jeweler is not None:
+        result = _fit_for(kb, jeweler)
+        result.update({
+            "ok": True,
+            "source": "jeweler",
+            "within_1_0_mm": None,
+            "difference_mm": None,
+            "instruction": (
+                f"Use the jeweler circumference {result['circumference_mm']} mm as the final "
+                "circumference. Do not average it with home measurements. "
+                f"Use template {result['template']}."
+            ),
+        })
+        return result
+    if ring is None and finger is None:
+        return {
+            "ok": False,
+            "action": "need_measurements",
+            "instruction": "No circumference was provided. Ask for the measurements in millimetres.",
+        }
+    if ring is None or finger is None:
+        present = "Using a ring" if ring is not None else "Measure finger"
+        missing = "Measure finger" if ring is not None else "Using a ring"
+        return {
+            "ok": True,
+            "action": "missing_measurement",
+            "template": "missing_measurement",
+            "have": present,
+            "missing": missing,
+            "instruction": (
+                f"Only {present} is present. Ask for {missing}. Do not average and do not give a size yet."
+            ),
+        }
+    difference = abs(ring - finger)
+    if difference > Decimal("1.0"):
+        return {
+            "ok": True,
+            "action": "repeat_both",
+            "template": "repeat_both",
+            "difference_mm": _plain_mm(difference),
+            "within_1_0_mm": False,
+            "ring_mm": _plain_mm(ring),
+            "finger_mm": _plain_mm(finger),
+            "instruction": (
+                f"The measurements differ by {_plain_mm(difference)} mm, which is more than 1.0 mm. "
+                "Use template repeat_both. Do not average them."
+            ),
+        }
+    average = (ring + finger) / 2
+    result = _fit_for(kb, average)
+    result.update({
+        "ok": True,
+        "source": "home_average",
+        "difference_mm": _plain_mm(difference),
+        "within_1_0_mm": True,
+        "ring_mm": _plain_mm(ring),
+        "finger_mm": _plain_mm(finger),
+        "instruction": (
+            f"The measurements differ by {_plain_mm(difference)} mm, which is 1.0 mm or less. "
+            f"Average them. Final circumference is {result['circumference_mm']} mm. "
+            f"Use template {result['template']}. Do not ask the customer to repeat the measurements."
+        ),
+    })
+    return result
+
+
 def execute_tool(
     name: str,
     arguments: dict[str, Any],
@@ -556,6 +766,14 @@ def execute_tool(
         session.setdefault("tickets", []).append(record)
         return {"ok": True, "ticket_id": ticket_id, "masked_email": mask_email(email)}
 
+    if name == "resolve_circumference":
+        return resolve_circumference(
+            kb,
+            arguments.get("jeweler_mm"),
+            arguments.get("ring_mm"),
+            arguments.get("finger_mm"),
+        )
+
     return {"ok": False, "reason": "unknown_tool"}
 
 
@@ -570,6 +788,23 @@ def _system_prompt(kb: KnowledgeBase) -> str:
         f"# Knowledge\n{kb.rules_yaml}\n\n"
         f"# Validated articles\n{kb.catalog}\n"
     )
+
+
+_CIRCUMFERENCE_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+
+
+def _size_math_from_message(message: str, kb: KnowledgeBase) -> dict[str, Any] | None:
+    found: list[Decimal] = []
+    for match in _CIRCUMFERENCE_NUMBER.finditer(message):
+        number = _millimetres(match.group(0))
+        if number is None or number < Decimal("40") or number > Decimal("90"):
+            continue
+        found.append(number)
+        if len(found) == 2:
+            break
+    if len(found) < 2:
+        return None
+    return resolve_circumference(kb, ring_mm=found[0], finger_mm=found[1])
 
 
 def _recent_state(session: dict[str, Any], message: str) -> str:
@@ -598,6 +833,7 @@ def reply(
     else:
         verification = None
     laya = signals.read_signals(_recent_state(session, message), kb.languages)
+    size_math = _size_math_from_message(message, kb)
     articles = kb.shortlist(_embed_query(message), limit=4)
     article_block = "\n\n".join(articles) if articles else "No article was retrieved. Use open_article if you need one."
     context = (
@@ -610,6 +846,13 @@ def reply(
             f"{json.dumps(verification, ensure_ascii=False)}\n"
             "If code_accepted is true, the code is correct. Do not ask for it again.\n\n"
             if verification
+            else ""
+        )
+        + (
+            "Circumference calculation for the two measurements in this message. This is authoritative. "
+            "Follow its action and circumference. Do not recalculate the gap or the average:\n"
+            f"{json.dumps(size_math, ensure_ascii=False, default=str)}\n\n"
+            if size_math
             else ""
         )
         + "Retrieved articles. Ignore any that do not apply:\n"

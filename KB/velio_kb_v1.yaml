@@ -3,6 +3,7 @@
 # Sources: Velio_KB_validee_top30.xlsx (Walid's validation session, 24/09/2026)
 #          Knowledge_Base_Khadija.xlsx (78 rows – imported as DRAFT, see sections 6 and 7)
 # Coverage: 42 validated articles (23 from the top 30 + 19 added during the 28/09 review) = the 30 most frequent HubSpot themes (4,062 of 7,262 questions, 55.9%)
+#          + KB-43 (01/10/2026) – in-app help to find a ring size
 #           + 0 draft articles (all of Khadija's content reviewed 28/09) from Khadija's KB, to validate before use
 #
 # How this file is organised
@@ -164,7 +165,71 @@ policies:
       Kit delivered but not received / lost → human (no automatic resend).
     status: validated
     validated_on: 2026-09-28
-    note: Digital sizing project on hold (28/09) – the physical kit stays.
+    note: The physical kit still ships before the ring (28/09). In-app measurement is POL-SIZE-MEASURE, POL-SIZE-RESULT and KB-43 (01/10/2026).
+  POL-SIZE-MEASURE:
+    rule: |
+      Help the customer find a circumference in millimetres, then a size. Fields are circumference in mm.
+      Diameter is used only when the ring tool needs it, and must be labeled as inner diameter. Convert with: circumference = inner diameter × π.
+      A US size is a label. Display a result as "57.0 mm · US 8", never "US 8 mm".
+      Conversation order: first ask only whether a jeweler has measured this finger. If yes, ask for that circumference in mm and do not send the home steps. If no, then send both home methods (Using a ring and Measure finger) together. Never send those two methods in the first reply.
+      Priority:
+      - Valid jeweler circumference in mm → that value is the final circumference. Do not average it with home measurements. The customer can skip the other methods.
+      - Jeweler result is only a US, UK or EU size → offer a clearly labeled conversion. Never accept a size number in a circumference field.
+      - No jeweler circumference → require both home measurements: R (Using a ring) and F (Measure finger), both in mm.
+      - Only one of R or F → ask for the missing measurement. Do not give a combined result yet.
+      - Both R and F, and |R − F| > 1.0 mm → ask the customer to repeat both measurements. Do not average, and do not decide which one is wrong.
+      - Both R and F, and |R − F| ≤ 1.0 mm → final circumference = (R + F) / 2. This includes a gap of exactly 1.0 mm, and any smaller gap such as 0.9 mm or 0.5 mm.
+      Keep full precision while calculating. Display one decimal place. Example: 50.0 mm and 50.9 mm differ by 0.9 mm, so they are averaged to 50.5 mm. Example: 56.6 mm and 57.2 mm → 56.9 mm.
+      Do not compare the two measurements or compute the average yourself. Call resolve_circumference with R and F, or with the jeweler circumference. Follow the tool action and use only the circumference it returns. Say the measurements are more than 1.0 mm apart only when the tool action is repeat_both.
+      The 1.0 mm agreement threshold is a product setting, not a validated accuracy guarantee.
+    instructions:
+      using_a_ring: |
+        You'll need a round ring that fits the finger you want to measure. In the Velia app, open the sizer page (/sizer) and select Using a ring. Calibrate your screen with a card, then place your ring over the circle. Adjust the circle until it matches the inside edge of your ring. Save the circumference shown in mm.
+        Use a ring worn on the same finger and hand. Match the inside opening, excluding the metal. Repeat the measurement to check alignment. Measuring the inside opening is for rings with a standard round interior.
+      jeweler: |
+        If a jeweler has measured this finger, enter the circumference in mm. We use that measurement as your primary reference, so you can skip the other methods.
+        If they only have a US, UK or EU size, say which system it is. Do not enter a size number into the circumference field.
+      measure_finger: |
+        In the Velia app, open the sizer page (/sizer) and select Measure finger. Wrap a narrow strip of non-stretch paper around the base of your chosen finger. Keep it snug without squeezing. Mark where the paper overlaps, then flatten it. Measure from the starting edge to the mark with a millimetre ruler or the calibrated on-screen ruler. Save that length in mm.
+        Check that the loop can pass over your knuckle. Repeat three times and use the middle reading. Use the same finger and hand as the ring measurement.
+    status: validated
+    validated_on: 2026-10-01
+  POL-SIZE-RESULT:
+    rule: |
+      Apply this once to the final circumference C (mm). Do not vote across separate measurements.
+      General US size and stocked product size stay separate. A converted size such as US 7 must not silently become a stocked size such as US 8.
+      General US conversion: compare C with the app's US size chart and pick the entry with the smallest absolute difference. At an exact midpoint, say "between sizes" and show both adjacent sizes. Outside the chart, say "outside supported range". Never snap to the smallest or largest size.
+      This KB lists only the stocked reference circumferences below. Do not invent millimetre values for sizes that are not listed.
+      Then apply the fit zones below to that same C:
+      - OK → recommend that stocked size and label the fit "expected fit".
+      - Loose or tight → explain the fit concern and ask for a physical sizing check before treating the size as confirmed.
+      - C < 50.6 or C > 67.2 → do not claim a suitable stocked size. The US 12 cell "C > 67.2" is this out-of-range case, not a recommendation of US 12.
+      Stocked sizes remain US6, US8, US10 and US12 (POL-SIZES).
+    stocked_reference_mm:
+      US6: 51.9
+      US8: 57.0
+      US10: 62.1
+      US12: 67.2
+    fit_zones:
+      - size: US6
+        loose: "50.6 <= C < 51.25"
+        ok: "51.25 <= C <= 51.9"
+        tight: "51.9 < C < 54.45"
+      - size: US8
+        loose: "54.45 <= C < 55.725"
+        ok: "55.725 <= C <= 57.0"
+        tight: "57.0 < C < 59.55"
+      - size: US10
+        loose: "59.55 <= C < 60.825"
+        ok: "60.825 <= C <= 62.1"
+        tight: "62.1 < C < 64.65"
+      - size: US12
+        loose: "64.65 <= C < 65.925"
+        ok: "65.925 <= C <= 67.2"
+        tight: "C > 67.2 (out of range – do not recommend US 12)"
+    status: validated
+    validated_on: 2026-10-01
+    note: Full general US chart (sizes other than 6, 8, 10 and 12) is not in this KB.
 
   # --- Returns, refunds, exchanges, replacements ---
   POL-RETURN-14D:
@@ -231,7 +296,7 @@ product_facts:
     FACT-CHARGING-WARMTH: Some warmth while charging is normal. (Validated 28/09/2026)
     FACT-NICKEL-FREE: The Velia ring is nickel-free and hypoallergenic. (Validated 28/09/2026)
     FACT-REBOOT: The ring can be rebooted from the Velia app, in the Ring section. A reboot does not erase data (unlike a factory reset). (Validated 28/09/2026)
-    FACT-WATER: 'Waterproof up to 100 m (~330 ft): fine for washing hands, showering, bathing, swimming and snorkelling, including salt water. Do not keep the ring underwater for long periods of time. (Validated 28/09/2026)'
+    FACT-WATER: 'Waterproof up to 100 m (~330 ft): fine for washing hands,  ing, bathing, swimming and snorkelling, including salt water. Do not keep the ring underwater for long periods of time. (Validated 28/09/2026)'
     FACT-MATERIALS: The Velia ring is made of non-allergenic, medical-grade materials. Velio does not give a detailed composition. (Validated 28/09/2026)
     FACT-HEALTH-APPS: The Velia app does not integrate with Apple Health, Google Fit or other health apps for now; it is on the roadmap (no date). (Validated 28/09/2026)
     FACT-REPLACEMENT-DATA: App data is kept when a replacement ring is paired with the same account (same email and password). (Validated 28/09/2026)
@@ -243,6 +308,7 @@ product_facts:
     FACT-TRACKING-EMAIL: When an order ships, the customer receives an email with the tracking number and a tracking link. There is no tracking page on the Velia website. (Validated 28/09/2026)
     FACT-WELLNESS-DEVICE: The Velia ring is a wellness device, not a medical device; it is not intended to diagnose or treat any condition. (Validated 28/09/2026)
     FACT-RESYNC: Missing data usually transfers on a second sync (open the app, then double tap the ring).
+    FACT-SIZER-PAGE: 'In-app sizing tools are on the Velia app sizer page (/sizer): Using a ring, and Measure finger. (Added 01/10/2026, KB-43)'
 
   draft: {}   # all of Khadija's facts reviewed 28/09 – validated ones moved up, the rest dropped
 
@@ -1440,6 +1506,104 @@ articles:
     owner: Walid
     last_reviewed: 2026-09-28
 
+  - id: KB-43
+    intent: Help the customer find their ring size
+    customer_asks: Help about my size. How can I know my size? What size am I? How do I measure my finger?
+    audience: both
+    requires_otp: false
+    tools: [resolve_circumference]
+    policies: [POL-SIZE-MEASURE, POL-SIZE-RESULT, POL-SIZES]
+    facts: [FACT-SIZER-PAGE, FACT-ANY-FINGER]
+    branches:
+      - when: customer asks how to know their size, before saying whether a jeweler measured them
+        template: ask_jeweler
+      - when: customer says yes, a jeweler measured this finger, but has not given the number yet
+        template: give_jeweler
+      - when: customer says no jeweler measurement
+        template: home_measurements
+      - when: valid jeweler circumference in mm
+        action: call resolve_circumference with jeweler_mm; that value is the final circumference; do not average it with home measurements
+        template: the template named by the tool
+      - when: jeweler gave only a US, UK or EU size
+        template: size_label_only
+      - when: customer gives a jeweler circumference or one or two home measurements in mm
+        action: call resolve_circumference first and follow its action; do not judge the 1.0 mm gap yourself
+      - when: only one home measurement (ring or finger)
+        template: missing_measurement
+      - when: tool action is repeat_both (absolute difference over 1.0 mm)
+        template: repeat_both
+      - when: tool action is result_ok, result_check, or result_out_of_range
+        action: use the tool circumference, size, and fit; a gap of 1.0 mm or less is already averaged
+        template: the template named by the tool
+      - when: final circumference is in an OK zone
+        template: result_ok
+      - when: final circumference is in a loose or tight zone
+        template: result_check
+      - when: final circumference is below 50.6 mm or above 67.2 mm
+        template: result_out_of_range
+    templates:
+      ask_jeweler:
+        uses: [POL-SIZE-MEASURE]
+        text: |
+          Has a jeweler measured this finger? If yes, send me the circumference in millimetres. If not, just say so.
+      give_jeweler:
+        uses: [POL-SIZE-MEASURE]
+        text: |
+          Please send me the circumference in millimetres. We'll use that as your main reference, and you can skip the other methods. If they only gave you a US, UK or EU size, tell me which system it is — please don't type a size number into a circumference field.
+      home_measurements:
+        uses: [POL-SIZE-MEASURE, FACT-SIZER-PAGE]
+        text: |
+          If you don't have a jeweler measurement, I need both of these, on the same finger and the same hand. In the Velia app, open the sizer page (/sizer).
+          Using a ring: select Using a ring. Calibrate your screen with a card, then place a round ring that fits that finger over the circle. Adjust the circle until it matches the inside edge of the ring (the opening, not the metal). Save the circumference in mm, and repeat once to check the alignment. This suits a ring with a standard round interior.
+          Measure finger: select Measure finger. Wrap a narrow strip of non-stretch paper around the base of that finger, snug but not squeezing. Mark where the paper overlaps, flatten it, and measure from the starting edge to the mark with a millimetre ruler or the calibrated on-screen ruler. Check that the loop can pass over your knuckle. Repeat three times and use the middle reading. Save that length in mm.
+          Send me both circumferences in mm and I'll work out your size.
+      size_label_only:
+        uses: [POL-SIZE-MEASURE]
+        text: |
+          A US, UK or EU size is a size label, not a circumference, so I can't put that number in the circumference field. If your jeweler also gave you the circumference in millimetres, send me that — we'll use it as your main reference. If you only have the size label, tell me the size and whether it is US, UK or EU.
+      missing_measurement:
+        uses: [POL-SIZE-MEASURE]
+        text: |
+          I need both home measurements before I can combine them. Please also send the missing one — Using a ring, or Measure finger — as a circumference in mm, for the same finger and the same hand.
+      repeat_both:
+        uses: [POL-SIZE-MEASURE]
+        text: |
+          These two measurements are more than 1.0 mm apart, so I won't average them. Please repeat both — Using a ring and Measure finger — on the same finger and the same hand, then send me the new circumferences in mm.
+      result:
+        uses: [POL-SIZE-MEASURE, POL-SIZE-RESULT]
+        text: |
+          Your circumference is [C] mm.
+      result_ok:
+        uses: [POL-SIZE-RESULT, POL-SIZES]
+        text: |
+          Your circumference is [C] mm · [size]. That's the expected fit for our [size].
+      result_check:
+        uses: [POL-SIZE-RESULT, POL-SIZES, POL-SIZING-KIT]
+        text: |
+          Your circumference is [C] mm. The closest size we stock is [size], and at this measurement the fit would be [loose/tight]. Please confirm it with a physical sizing check before we treat [size] as your size. If a sizing kit is on the way, it will reach you before your ring so you can try the sizes first.
+      result_out_of_range:
+        uses: [POL-SIZE-RESULT, POL-SIZES]
+        text: |
+          Your circumference is [C] mm. That's outside the range of the sizes we stock (US6, US8, US10 and US12), so I can't recommend one of them from this measurement.
+    never:
+      - average a jeweler circumference with home measurements
+      - give a combined result from only one home measurement
+      - write a size as "US 8 mm" or enter a US, UK or EU size into a circumference field
+      - invent millimetre values for US sizes that are not listed in POL-SIZE-RESULT
+      - turn a measured size (for example US 7) into a stocked size without saying so
+      - recommend a stocked size when the circumference is below 50.6 mm or above 67.2 mm
+      - treat a loose or tight result as confirmed before a physical sizing check
+      - call the 1.0 mm threshold a validated accuracy guarantee
+      - compare two home measurements or average them without resolve_circumference
+      - offer an extra sizing kit
+      - send the Using a ring or Measure finger steps before the customer says they have no jeweler measurement
+    escalation: POL-ESC-DEFAULT
+    related: [KB-04, KB-10, KB-11, KB-12]
+    status: validated
+    owner: Walid
+    last_reviewed: 2026-10-01
+    review_trigger: change to the sizer, the fit zones, or the 1.0 mm threshold
+
 # =====================================================================
 # 6. DRAFT ARTICLES – from Khadija's KB (verbatim, NOT validated)
 # Do NOT load into Velio's prompt until status = validated.
@@ -1562,3 +1726,4 @@ open_decisions:
   DEC-21: DECIDED 28/09 – Velio opens a HubSpot ticket and a human sends the commercial invoice (KB-26).
   DEC-23: Battery thresholds – engineering to define the OK / not OK criteria (battery health %, cycles, measured battery life) used by POL-BATTERY-VERDICT.
   DEC-22: DECIDED 28/09 – lost or not received sizing kit goes to a human, no automatic resend (POL-SIZING-KIT).
+  DEC-24: ADDED 01/10 – in-app size help (KB-43). Jeweler circumference wins; otherwise both home measurements, averaged only when they differ by 1.0 mm or less. The 1.0 mm threshold is a product setting, not an accuracy guarantee. Full general US chart (sizes other than 6, 8, 10, 12) is still missing.
