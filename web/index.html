@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Velio by Velia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/chatbot.css" />
+</head>
+<body class="velio-page">
+  <header class="velio-site-header">
+    <a class="velio-logo" href="/">Velia</a>
+  </header>
+
+  <main class="velio-main">
+    <article class="velio-chat-card" aria-label="Velio chat">
+      <header class="velio-card-header">
+        <div class="velio-avatar" aria-hidden="true"><span>V</span></div>
+        <div class="velio-agent-info">
+          <h3>Velio by Velia</h3>
+          <div class="velio-status">
+            <span class="velio-status-dot" aria-hidden="true"></span>
+            <span>Online · I’m here whenever you need me.</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="velio-home-screen" id="chatStarter">
+        <div class="velio-home-body">
+        <section class="velio-hero">
+          <span class="velio-sparkle" aria-hidden="true">✦</span>
+          <h1>Meet Velio</h1>
+          <p class="velio-tagline">A quieter, faster way to get help with your Velia ring.</p>
+          <p class="velio-description">Continuously refined with the collective knowledge of our team, Velio is designed to resolve questions faster and more consistently than any one individual could. So every interaction feels simple, thoughtful, and immediate.</p>
+        </section>
+
+        <div class="velio-categories" role="group" aria-label="Help categories">
+          <button type="button" class="velio-category-btn" data-topic="Order &amp; shipping" data-agent="order_shipping_agent" data-prompt="I need help with order and shipping">
+            <div class="velio-cat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="velio-cat-text">
+              <h4>Order &amp; shipping</h4>
+              <p>Track orders, delivery updates, and address changes</p>
+            </div>
+            <span class="velio-cat-arrow" aria-hidden="true">›</span>
+          </button>
+
+          <button type="button" class="velio-category-btn" data-topic="Battery &amp; charging" data-agent="battery_agent" data-prompt="I have a battery issue with my Velia Ring">
+            <div class="velio-cat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="1.5"/><path d="M22 11v2"/><line x1="6" y1="11" x2="6" y2="13"/><line x1="10" y1="9" x2="10" y2="15"/><line x1="14" y1="11" x2="14" y2="13"/></svg>
+            </div>
+            <div class="velio-cat-text">
+              <h4>Battery &amp; charging</h4>
+              <p>Charging issues, battery life, and best practices</p>
+            </div>
+            <span class="velio-cat-arrow" aria-hidden="true">›</span>
+          </button>
+
+          <button type="button" class="velio-category-btn" data-topic="Sizing help" aria-disabled="true">
+            <div class="velio-cat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/></svg>
+            </div>
+            <div class="velio-cat-text">
+              <h4>Sizing help</h4>
+              <p>Find your perfect fit or resize your ring</p>
+            </div>
+            <span class="velio-cat-arrow" aria-hidden="true">›</span>
+          </button>
+
+          <button type="button" class="velio-category-btn" data-topic="Pairing &amp; sync" aria-disabled="true">
+            <div class="velio-cat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M2 12c0-3.87 1.57-7.37 4.1-9.9"/><path d="M21.9 12c0-3.87-1.57-7.37-4.1-9.9"/><path d="M5.07 19.1A12.93 12.93 0 0 0 12 21a12.93 12.93 0 0 0 6.93-1.9"/><path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/></svg>
+            </div>
+            <div class="velio-cat-text">
+              <h4>Pairing &amp; sync</h4>
+              <p>Connection issues, syncing, and setup help</p>
+            </div>
+            <span class="velio-cat-arrow" aria-hidden="true">›</span>
+          </button>
+        </div>
+
+        <div class="velio-quick-actions-section">
+          <div class="velio-quick-actions-label">Quick actions</div>
+          <div class="velio-quick-actions" role="group" aria-label="Quick actions">
+            <button type="button" class="velio-quick-btn" data-topic="Order &amp; shipping" data-agent="order_shipping_agent" data-prompt="I want to track my order">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              Track order
+            </button>
+            <button type="button" class="velio-quick-btn" data-topic="Order &amp; shipping" data-agent="order_shipping_agent" data-prompt="What is my delivery status?">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Delivery status
+            </button>
+            <button type="button" class="velio-quick-btn" aria-disabled="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Find my size
+            </button>
+            <button type="button" class="velio-quick-btn" aria-disabled="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.21"/></svg>
+              Reconnect ring
+            </button>
+            <button type="button" class="velio-quick-btn" aria-disabled="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Charging tips
+            </button>
+            <button type="button" class="velio-quick-btn" aria-disabled="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              Update Firmware
+            </button>
+          </div>
+        </div>
+        </div>
+
+        <div class="velio-input-area velio-input-area--home">
+          <form class="velio-input-row" id="homeForm" autocomplete="off">
+            <input type="text" class="velio-input" id="homeInput" placeholder="Ask Velio a question…" aria-label="Your message" />
+            <button type="button" class="velio-attach-btn" aria-label="Attach file" title="Attach file">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <button type="submit" class="velio-send-btn" id="homeSend" aria-label="Send message">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </form>
+          <p class="velio-privacy-note">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Your privacy matters. Please avoid sharing sensitive personal information.
+          </p>
+        </div>
+      </div>
+
+      <div class="velio-chat-screen" id="chatScreen" hidden>
+        <div class="velio-chat-topbar">
+          <button type="button" class="velio-back-btn" id="backBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <span class="velio-chat-topic" id="chatTopicLabel">Chat with Velio</span>
+        </div>
+
+        <div class="velio-messages" id="chatMessages" aria-live="polite" aria-relevant="additions"></div>
+
+        <div class="velio-quick-replies" id="chatQuickReplies" hidden>
+          <div class="velio-quick-replies-inner" id="orderShippingChoiceButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Track my order">Track my order</button>
+            <button type="button" class="velio-chip-btn" data-send="Address change">Address change</button>
+            <button type="button" class="velio-chip-btn" data-send="Ring confirmation">Ring confirmation</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="ringConfirmationDecisionButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Confirm">Confirm</button>
+            <button type="button" class="velio-chip-btn" data-send="Change">Change</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="ringAddressOfferButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Change address">Change address</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="No thanks">No thanks</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="ringKbChoiceButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Continue ring confirmation">Continue ring confirmation</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="Pass to Human Agent">Pass to Human Agent</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="orderEmailReuseButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Yes, same email">Yes, same email</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="No, I want to change">No, I want to change</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="specializedOfferButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Check battery health">Check battery health</button>
+            <button type="button" class="velio-chip-btn" data-send="Track my order">Track my order</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="Pass to Human Agent">Pass to Human Agent</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="feedbackButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Yes" id="feedbackYesBtn">Yes, it helped</button>
+            <button type="button" class="velio-chip-btn" data-send="Ask a new question" id="feedbackAskBtn">Ask a new question</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="Pass to Human Agent" id="feedbackHumanBtn">Pass to Human Agent</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="helpChoiceButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Ask a new question">Ask a new question</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="Pass to Human Agent">Pass to Human Agent</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="batteryHelpButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="This helped">This helped</button>
+            <button type="button" class="velio-chip-btn" data-send="Ask a new question">Ask a new question</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="Pass to Human Agent">Pass to Human Agent</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="batteryAskNewButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Ask a new question">Ask a new question</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="Pass to Human Agent">Pass to Human Agent</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="supportNameConfirmButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Yes">Yes</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="No">No</button>
+          </div>
+          <div class="velio-quick-replies-inner" id="agentTopicRedirectButtons" hidden></div>
+          <div class="velio-quick-replies-inner" id="agentSwitchButtons" hidden></div>
+          <div class="velio-quick-replies-inner" id="escalationButtons" hidden>
+            <button type="button" class="velio-chip-btn" data-send="Yes">Yes, create a ticket</button>
+            <button type="button" class="velio-chip-btn velio-chip-btn--muted" data-send="No thanks">No thanks</button>
+          </div>
+          <div class="velio-rating-panel" id="ratingPanel" hidden>
+            <span class="velio-feedback-panel__step">Step 2 of 2</span>
+            <p class="velio-rating-panel__title">Rate our service</p>
+            <div class="velio-rating-row" id="ratingButtons">
+              <button type="button" class="velio-rating-btn" data-send="1">1</button>
+              <button type="button" class="velio-rating-btn" data-send="2">2</button>
+              <button type="button" class="velio-rating-btn" data-send="3">3</button>
+              <button type="button" class="velio-rating-btn" data-send="4">4</button>
+              <button type="button" class="velio-rating-btn" data-send="5">5</button>
+            </div>
+            <p class="velio-rating-panel__hint">1 = poor · 5 = excellent</p>
+          </div>
+        </div>
+
+        <div class="velio-input-area">
+          <div class="velio-lookup-hints" id="agentWaitHints" hidden aria-live="polite" aria-atomic="false"></div>
+          <div class="velio-feedback-panel" id="chatbotFeedbackPanel" hidden>
+            <span class="velio-feedback-panel__step">Step 1 of 2 · Feedback</span>
+            <h3 class="velio-feedback-panel__title">How was your chat with Velio?</h3>
+            <p class="velio-feedback-panel__hint">Optional — your comments help us improve. You'll rate our service in the next step.</p>
+            <textarea
+              class="velio-feedback-panel__input"
+              id="chatbotFeedbackInput"
+              rows="3"
+              maxlength="2000"
+              placeholder="What went well? What could we do better?"
+              aria-label="Your feedback about Velio"
+            ></textarea>
+            <div class="velio-feedback-panel__actions">
+              <button type="button" class="velio-chip-btn velio-chip-btn--primary" id="chatbotFeedbackSendBtn">Send feedback</button>
+              <button type="button" class="velio-chip-btn velio-chip-btn--muted" id="chatbotFeedbackSkipBtn" data-send="Skip">Skip for now</button>
+            </div>
+          </div>
+          <form class="velio-input-row" id="chatForm" autocomplete="off">
+            <input type="text" class="velio-input" id="chatInput" name="message" placeholder="Ask Velio a question…" aria-label="Your message" />
+            <button type="button" class="velio-attach-btn" aria-label="Attach file" title="Attach file">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <button type="submit" class="velio-send-btn" id="chatSend" aria-label="Send message" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </form>
+          <p class="velio-privacy-note">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Your privacy matters. Please avoid sharing sensitive personal information.
+          </p>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer class="velio-site-footer">
+    <div class="velio-footer-logo">
+      <span class="velio-logo">Velia</span>
+      <span class="velio-footer-copy">© 2026 Velia</span>
+    </div>
+    <nav class="velio-footer-links" aria-label="Legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Help Center</a>
+    </nav>
+  </footer>
+
+  <script>window.CHATBOT_BASE = "/";</script>
+  <script src="/static/js/chatbot.js" defer></script>
+</body>
+</html>
